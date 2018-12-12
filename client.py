@@ -101,7 +101,7 @@ class Client:
             self.toggle_chat()
         else:
             wrong_password_label = Label(self.login_frame, text="You entered a wrong password", fg="red")
-            wrong_password_label.grid(row=2, column=2)
+            wrong_password_label.grid(row=2, column=3)
 
     def login_gui(self):
         # man skal ikke blive navigeret hertil, hvis man ikke angiver et nickname
