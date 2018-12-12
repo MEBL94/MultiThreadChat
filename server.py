@@ -15,6 +15,7 @@ server_socket.listen(10)
 
 class Server:
     def __init__(self):
+        #
         # Vi laver en tom liste, som skal indeholde alle vores clients
         self.clients = []
 
