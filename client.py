@@ -3,15 +3,17 @@ from tkinter import *
 from tkinter import messagebox
 import threading
 
+host = "127.0.0.1"
+port = 9000
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((host, port))
+
 
 class Client:
 
     def __init__(self, root):
         # Sætter forbindelsen op
-        self.host = "127.0.0.1"
-        self.port = 9000
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.host, self.port))
+
 
         # GUI'en starter her
         self.root = root
@@ -46,27 +48,25 @@ class Client:
         self.password = StringVar()
         self.password.set("")
 
+        self.messages_frame = Frame(self.root)
+        self.scrollbar = Scrollbar(self.messages_frame)
+        self.msg_list = Listbox(self.messages_frame, bg="lightblue", height=30, width=60,
+                                yscrollcommand=self.scrollbar.set)
+
     def toggle_chat(self):
         self.nickname_string = self.nickname_string_var.get()
         self.root.title("Mathias' chat")
         self.nickname_frame.grid_remove()
         self.root.geometry("400x400")
-        messages_frame = Frame(self.root)
-        scrollbar = Scrollbar(messages_frame)
 
-        # Har gjort denne variabel global, fordi den skal kunne tilgås over alt.
-        # Det er for, at __init__-metoden ikke bliver for stor.
-        global msg_list
-        msg_list = Listbox(messages_frame, bg="lightblue", height=30, width=60, yscrollcommand=scrollbar.set)
-
-        # To see through previous messages.
-        scrollbar.pack(side=RIGHT, fill=Y)
-        msg_list.pack(side=LEFT, fill=BOTH)
-        msg_list.pack()
-
-        messages_frame.pack()
         global my_msg
         my_msg = StringVar()
+
+        self.messages_frame.pack()
+
+        # To see through previous messages.
+        self.scrollbar.pack(side=RIGHT, fill=Y)
+        self.msg_list.pack(side=LEFT, fill=BOTH)
 
         entry_field = Entry(self.root, textvariable=my_msg)
 
@@ -140,22 +140,20 @@ class Client:
         self.send_message()
 
     def send_message(self):
-        global my_msg
         msg = my_msg.get()
         message_to_be_sent = self.nickname_string + ": " + msg
-        self.sock.send(message_to_be_sent.encode())
+        client_socket.send(message_to_be_sent.encode())
         if msg == "quit":
-            self.sock.close()
+            client_socket.close()
             self.root.quit()
 
-    @staticmethod
     def receive_message(self):
         while True:
             try:
-                msg = self.sock.recv(1024).decode()
+                msg = client_socket.recv(1024).decode()
                 print(msg)
-                msg_list.insert(END, msg)
-                msg_list.see(END)
+                self.msg_list.insert(END, msg)
+                self.msg_list.see(END)
             except OSError:
                 break
 

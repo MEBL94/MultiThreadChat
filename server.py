@@ -3,6 +3,16 @@ import threading
 import queue
 import time
 
+host = "127.0.0.1"
+port = 9000
+buffer_size = 1024
+host_and_port = (host, port)
+
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(host_and_port)
+server_socket.listen(10)
+
+
 class Server:
     def __init__(self):
         # Vi laver en tom liste, som skal indeholde alle vores clients
@@ -11,28 +21,18 @@ class Server:
         # Vi laver en queue, som skal indeholde alle beskederne
         self.messages = queue.Queue()
 
-        # Vi sætter IP-adresse og portnr. til to variabler
-        self.host = "127.0.0.1"
-        self.port = 9000
-        self.buffer_size = 1024
-        self.host_and_port = (self.host, self.port)
-
-        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.bind(self.host_and_port)
-        self.connection.listen(10)
+        threading.Thread(target=self.broadcast_messages).start()
 
         self.accept_connections()
 
-        self.handle_client(self.connection)
-
-        threading.Thread(target=self.broadcast_messages).start()
+        self.handle_client(server_socket)
 
     def accept_connections(self):
         # Vi sætter antallet af nicknames til 0,
         # så hver gang en klient bliver tilføjet bliver denne variabel inkrementeret med 1
         nicknames = 0
         while True:
-            conn, addr = self.connection.accept()
+            conn, addr = server_socket.accept()
             client_dict = {"NICKNAME": nicknames, "HEARTBEAT": time.time(), "CLIENT": conn}
             self.clients.append(client_dict)
             nicknames += 1
@@ -56,7 +56,7 @@ class Server:
     def handle_client(self, client):
         """Handles a single client connection."""
 
-        name = client.recv(self.buffer_size).decode()
+        name = client.recv(buffer_size).decode()
         welcome = 'Welcome %s! Type quit to exit the chat.' % name
         client.send(bytes(welcome, "utf8"))
         msg = "%s has joined the chat!" % name
@@ -64,7 +64,7 @@ class Server:
         self.clients[client] = name
 
         while True:
-            msg = client.recv(self.buffer_size)
+            msg = client.recv(buffer_size)
             if msg != bytes("quit", "utf8"):
                 self.broadcast_messages(msg, name+": ")
             else:
@@ -74,7 +74,6 @@ class Server:
                 self.broadcast_messages(bytes("%s has left the chat." % name, "utf8"))
                 break
 
-# starter serveren
 
 server = Server()
 
