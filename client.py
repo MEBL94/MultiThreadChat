@@ -124,7 +124,7 @@ class Client:
         password_entry = Entry(self.login_frame, textvariable=self.password)
         password_entry.grid(row=1, column=1)
 
-        explanatory_message = Label(self.login_frame, text="Click login to submit", fg="green")
+        explanatory_message = Label(self.login_frame, text="Click login to submit")
         explanatory_message.grid(row=2, column=1)
 
         submit_button = Button(self.login_frame, text="Login", command=self.login, bg="green", fg="black")
@@ -143,6 +143,7 @@ class Client:
         msg = my_msg.get()
         message_to_be_sent = self.nickname_string + ": " + msg
         client_socket.send(message_to_be_sent.encode())
+        my_msg.set("")
         if msg == "quit":
             client_socket.close()
             self.root.quit()
