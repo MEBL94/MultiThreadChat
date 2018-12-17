@@ -5,7 +5,6 @@ import time
 
 host = "127.0.0.1"
 port = 9000
-buffer_size = 1024
 host_and_port = (host, port)
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -15,7 +14,6 @@ server_socket.listen(10)
 
 class Server:
     def __init__(self):
-        #
         # Vi laver en tom liste, som skal indeholde alle vores clients
         self.clients = []
 
@@ -57,7 +55,7 @@ class Server:
     def handle_client(self, client):
         """Handles a single client connection."""
 
-        name = client.recv(buffer_size).decode()
+        name = client.recv(1024).decode()
         welcome = 'Welcome %s! Type quit to exit the chat.' % name
         client.send(bytes(welcome, "utf8"))
         msg = "%s has joined the chat!" % name
@@ -65,7 +63,7 @@ class Server:
         self.clients[client] = name
 
         while True:
-            msg = client.recv(buffer_size)
+            msg = client.recv(1024)
             if msg != bytes("quit", "utf8"):
                 self.broadcast_messages(msg, name+": ")
             else:
