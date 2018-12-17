@@ -48,6 +48,7 @@ class Client:
         self.password = StringVar()
         self.password.set("")
 
+        self.my_msg = StringVar()
         self.messages_frame = Frame(self.root)
         self.scrollbar = Scrollbar(self.messages_frame)
         self.msg_list = Listbox(self.messages_frame, bg="lightblue", height=30, width=60,
@@ -59,21 +60,18 @@ class Client:
         self.nickname_frame.grid_remove()
         self.root.geometry("400x400")
 
-        global my_msg
-        my_msg = StringVar()
-
         self.messages_frame.pack()
 
         # To see through previous messages.
         self.scrollbar.pack(side=RIGHT, fill=Y)
         self.msg_list.pack(side=LEFT, fill=BOTH)
 
-        entry_field = Entry(self.root, textvariable=my_msg)
+        send_message_field = Entry(self.root, textvariable=self.my_msg)
 
-        my_msg.set(entry_field.get())
+        self.my_msg.set(send_message_field.get())
 
-        entry_field.bind("<Return>", func=lambda f: self.send_message())
-        entry_field.pack(fill=X)
+        send_message_field.bind("<Return>", func=lambda f: self.send_message())
+        send_message_field.pack(fill=X)
 
         send_msg_button = Button(self.root, text="Send message", command=self.send_message, bg="green", fg="black")
         send_msg_button.pack()
@@ -136,14 +134,14 @@ class Client:
 
     def on_closing(self):
         """This function is to be called when the window is closed."""
-        my_msg.set("quit")
+        self.my_msg.set("quit")
         self.send_message()
 
     def send_message(self):
-        msg = my_msg.get()
+        msg = self.my_msg.get()
         message_to_be_sent = self.nickname_string + ": " + msg
         client_socket.send(message_to_be_sent.encode())
-        my_msg.set("")
+        self.my_msg.set("")
         if msg == "quit":
             client_socket.close()
             self.root.quit()
